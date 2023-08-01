@@ -7,9 +7,9 @@ use glam::*;
 mod window;
 use window::{Framebuffer, Window};
 mod model;
-use model::{load_model, Material, Model, Vertex};
+use model::{Material, Model, Vertex};
 mod texture;
-use texture::{load_texture, Texture};
+use texture::Texture;
 
 fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
     let (r, g, b) = (r as u32, g as u32, b as u32);
@@ -155,7 +155,7 @@ fn main() {
     let mut depth_buffer =
         Framebuffer::new(window.framebuffer().width(), window.framebuffer().height());
 
-    let model = load_model("assets/DamagedHelmet/DamagedHelmet.gltf");
+    let model = Model::load("assets/DamagedHelmet/DamagedHelmet.gltf");
 
     let timer = SystemTime::now();
 

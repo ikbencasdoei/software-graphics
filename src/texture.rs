@@ -7,18 +7,18 @@ pub struct Texture {
     height: u32,
 }
 
-pub fn load_texture(file_path: &str) -> Texture {
-    let image = image::open(file_path).unwrap();
-    let rgba = image.into_rgba8();
-
-    Texture {
-        width: rgba.width(),
-        height: rgba.height(),
-        data: rgba.into_raw(),
-    }
-}
-
 impl Texture {
+    pub fn load(file_path: &str) -> Self {
+        let image = image::open(file_path).unwrap();
+        let rgba = image.into_rgba8();
+
+        Self {
+            width: rgba.width(),
+            height: rgba.height(),
+            data: rgba.into_raw(),
+        }
+    }
+
     pub fn sample_pixel(&self, x: f32, y: f32) -> Vec4 {
         let inv_dims = Vec2::new(1.0 / self.width as f32, 1.0 / self.height as f32);
 

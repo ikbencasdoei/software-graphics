@@ -1,4 +1,4 @@
-use crate::{load_texture, Texture};
+use crate::Texture;
 use glam::*;
 use std::path::Path;
 
@@ -32,41 +32,28 @@ pub struct Model {
     pub materials: Vec<Material>,
 }
 
-#[derive(Clone, Debug)]
-pub struct Material {
-    pub base_color: Vec4,
-    pub base_color_texture: Option<Texture>,
-}
+impl Model {
+    pub fn load(file_path: &str) -> Self {
+        let (document, buffers, _images) = gltf::import(file_path).expect("Failed to load model.");
 
-impl Default for Material {
-    fn default() -> Self {
-        Material {
-            base_color: Vec4::ONE,
-            base_color_texture: None,
+        let mut meshes = Vec::new();
+        let mut materials = vec![Material::default(); document.materials().len()];
+        if materials.is_empty() {
+            materials.push(Material::default());
         }
+
+        if document.nodes().len() > 0 {
+            process_node(
+                document.nodes().next().as_ref().unwrap(),
+                &buffers,
+                &mut meshes,
+                &mut materials,
+                file_path,
+            );
+        }
+
+        Self { meshes, materials }
     }
-}
-
-pub fn load_model(file_path: &str) -> Model {
-    let (document, buffers, _images) = gltf::import(file_path).expect("Failed to load model.");
-
-    let mut meshes = Vec::new();
-    let mut materials = vec![Material::default(); document.materials().len()];
-    if materials.is_empty() {
-        materials.push(Material::default());
-    }
-
-    if document.nodes().len() > 0 {
-        process_node(
-            document.nodes().next().as_ref().unwrap(),
-            &buffers,
-            &mut meshes,
-            &mut materials,
-            file_path,
-        );
-    }
-
-    Model { meshes, materials }
 }
 
 fn process_node(
@@ -132,7 +119,7 @@ fn process_node(
                             .join(uri);
                         let texture_path_str = texture_path.into_os_string().into_string().unwrap();
 
-                        material.base_color_texture = Some(load_texture(&texture_path_str));
+                        material.base_color_texture = Some(Texture::load(&texture_path_str));
                     }
                 }
 
@@ -142,6 +129,21 @@ fn process_node(
                     material_idx,
                 });
             }
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Material {
+    pub base_color: Vec4,
+    pub base_color_texture: Option<Texture>,
+}
+
+impl Default for Material {
+    fn default() -> Self {
+        Material {
+            base_color: Vec4::ONE,
+            base_color_texture: None,
         }
     }
 }
