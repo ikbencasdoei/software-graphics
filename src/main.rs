@@ -16,7 +16,7 @@ fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
     (r << 16) | (g << 8) | b
 }
 
-fn from_vec3_rgb(rgb: &Vec3) -> u32 {
+fn from_vec3_rgb(rgb: Vec3) -> u32 {
     from_u8_rgb(
         (rgb.x * 255.99) as u8,
         (rgb.y * 255.99) as u8,
@@ -24,28 +24,28 @@ fn from_vec3_rgb(rgb: &Vec3) -> u32 {
     )
 }
 
-fn edge_function(a: &Vec2, c: &Vec2, b: &Vec2) -> f32 {
+fn edge_function(a: Vec2, c: Vec2, b: Vec2) -> f32 {
     (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x)
 }
 
 fn draw_triangle(
     framebuffer: &mut Framebuffer,
     depth_buffer: &mut Framebuffer,
-    v0: &Vertex,
-    v1: &Vertex,
-    v2: &Vertex,
-    mvp: &Mat4,
-    inv_trans_model_matrix: &Mat4,
+    v0: Vertex,
+    v1: Vertex,
+    v2: Vertex,
+    mvp: Mat4,
+    inv_trans_model_matrix: Mat4,
     material: &Material,
 ) {
-    let v0_clip_space = project(&v0.position, mvp);
-    let v1_clip_space = project(&v1.position, mvp);
-    let v2_clip_space = project(&v2.position, mvp);
+    let v0_clip_space = project(v0.position, mvp);
+    let v1_clip_space = project(v1.position, mvp);
+    let v2_clip_space = project(v2.position, mvp);
 
     let screen_size = Vec2::new(framebuffer.width() as f32, framebuffer.height() as f32);
-    let v0_screen_space = clip_to_screen_space(&v0_clip_space.0.xy(), &screen_size);
-    let v1_screen_space = clip_to_screen_space(&v1_clip_space.0.xy(), &screen_size);
-    let v2_screen_space = clip_to_screen_space(&v2_clip_space.0.xy(), &screen_size);
+    let v0_screen_space = clip_to_screen_space(v0_clip_space.0.xy(), screen_size);
+    let v1_screen_space = clip_to_screen_space(v1_clip_space.0.xy(), screen_size);
+    let v2_screen_space = clip_to_screen_space(v2_clip_space.0.xy(), screen_size);
 
     let min = v0_screen_space
         .min(v1_screen_space.min(v2_screen_space))
@@ -56,14 +56,14 @@ fn draw_triangle(
         for y in (min.y as usize)..(max.y as usize) {
             let p = Vec2::new(x as f32, y as f32) + 0.5;
 
-            let a0 = edge_function(&v1_screen_space, &v2_screen_space, &p);
-            let a1 = edge_function(&v2_screen_space, &v0_screen_space, &p);
-            let a2 = edge_function(&v0_screen_space, &v1_screen_space, &p);
+            let a0 = edge_function(v1_screen_space, v2_screen_space, p);
+            let a1 = edge_function(v2_screen_space, v0_screen_space, p);
+            let a2 = edge_function(v0_screen_space, v1_screen_space, p);
             let overlaps = a0 > 0.0 && a1 > 0.0 && a2 > 0.0;
 
             if overlaps {
                 let area_rep =
-                    1.0 / edge_function(&v0_screen_space, &v1_screen_space, &v2_screen_space);
+                    1.0 / edge_function(v0_screen_space, v1_screen_space, v2_screen_space);
                 let bary_coords = Vec3::new(a0, a1, a2) * area_rep;
                 let correction = 1.0
                     / (bary_coords.x * v0_clip_space.1
@@ -78,9 +78,9 @@ fn draw_triangle(
                 if z < depth {
                     depth_buffer.set_pixel_f32(x, y, z);
 
-                    let n0 = *inv_trans_model_matrix * Vec4::from((v0.normal, 1.0));
-                    let n1 = *inv_trans_model_matrix * Vec4::from((v1.normal, 1.0));
-                    let n2 = *inv_trans_model_matrix * Vec4::from((v2.normal, 1.0));
+                    let n0 = inv_trans_model_matrix * Vec4::from((v0.normal, 1.0));
+                    let n1 = inv_trans_model_matrix * Vec4::from((v1.normal, 1.0));
+                    let n2 = inv_trans_model_matrix * Vec4::from((v2.normal, 1.0));
                     let normal = ((n0 * v0_clip_space.1 * bary_coords.x
                         + n1 * v1_clip_space.1 * bary_coords.y
                         + n2 * v2_clip_space.1 * bary_coords.z)
@@ -103,30 +103,30 @@ fn draw_triangle(
 
                     let final_color = base_color * light_intensity;
 
-                    framebuffer.set_pixel(x, y, from_vec3_rgb(&final_color.xyz()));
+                    framebuffer.set_pixel(x, y, from_vec3_rgb(final_color.xyz()));
                 }
             }
         }
     }
 }
 
-fn project(p: &Vec3, mvp: &Mat4) -> (Vec3, f32) {
-    let proj_pos = *mvp * Vec4::from((*p, 1.0));
+fn project(p: Vec3, mvp: Mat4) -> (Vec3, f32) {
+    let proj_pos = mvp * Vec4::from((p, 1.0));
     let rec = 1.0 / proj_pos.w;
     let rec_pos = proj_pos * rec;
     (Vec3::new(rec_pos.x, rec_pos.y, rec_pos.z), rec)
 }
 
-fn clip_to_screen_space(clip_space: &Vec2, screen_size: &Vec2) -> Vec2 {
-    (*clip_space * -0.5 + 0.5) * *screen_size
+fn clip_to_screen_space(clip_space: Vec2, screen_size: Vec2) -> Vec2 {
+    (clip_space * -0.5 + 0.5) * screen_size
 }
 
 fn draw_model(
     framebuffer: &mut Framebuffer,
     depth_buffer: &mut Framebuffer,
     model: &Model,
-    mvp: &Mat4,
-    inv_trans_model_matrix: &Mat4,
+    mvp: Mat4,
+    inv_trans_model_matrix: Mat4,
 ) {
     for mesh in &model.meshes {
         for i in 0..(mesh.indices.len() / 3) {
@@ -139,9 +139,9 @@ fn draw_model(
             draw_triangle(
                 framebuffer,
                 depth_buffer,
-                &v0,
-                &v1,
-                &v2,
+                v0,
+                v1,
+                v2,
                 mvp,
                 inv_trans_model_matrix,
                 material,
@@ -186,8 +186,8 @@ fn main() {
             framebuffer,
             &mut depth_buffer,
             &model,
-            &mvp_matrix,
-            &inv_trans_model_matrix,
+            mvp_matrix,
+            inv_trans_model_matrix,
         );
 
         window.display();
