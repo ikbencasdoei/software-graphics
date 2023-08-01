@@ -2,7 +2,7 @@ use glam::Vec3;
 
 pub struct Window {
     window: minifb::Window,
-    framebuffer: Framebuffer,
+    framebuffer: Framebuffer<Vec3>,
 }
 
 impl Window {
@@ -30,7 +30,7 @@ impl Window {
     pub fn display(&mut self) {
         self.window
             .update_with_buffer(
-                &self.framebuffer.data,
+                &self.framebuffer.as_buffer(),
                 self.framebuffer.width(),
                 self.framebuffer.height(),
             )
@@ -42,26 +42,28 @@ impl Window {
         }
     }
 
-    pub fn framebuffer(&mut self) -> &mut Framebuffer {
+    pub fn framebuffer(&mut self) -> &mut Framebuffer<Vec3> {
         &mut self.framebuffer
     }
 }
 
-pub struct Framebuffer {
-    data: Vec<u32>,
+pub struct Framebuffer<T> {
+    data: Vec<T>,
     width: usize,
     height: usize,
 }
 
-impl Framebuffer {
+impl<T: Default + Clone> Framebuffer<T> {
     pub fn new(width: usize, height: usize) -> Self {
         Framebuffer {
-            data: vec![0; width * height],
+            data: vec![T::default(); width * height],
             width,
             height,
         }
     }
+}
 
+impl<T: Copy> Framebuffer<T> {
     pub fn width(&self) -> usize {
         self.width
     }
@@ -70,24 +72,31 @@ impl Framebuffer {
         self.height
     }
 
-    pub fn set_pixel(&mut self, x: usize, y: usize, color: Vec3) {
-        let mut array = [0.0; 4];
-        color.write_to_slice(&mut array[1..]);
-        let bytes = array.map(|float| (float * u8::MAX as f32) as u8);
-        self.data[x + y * self.width] = u32::from_be_bytes(bytes)
+    pub fn set_pixel(&mut self, x: usize, y: usize, value: T) {
+        self.data[x + y * self.width] = value
     }
 
-    pub fn set_pixel_f32(&mut self, x: usize, y: usize, value: f32) {
-        self.data[y * self.width + x] = (value * u32::MAX as f32) as u32;
+    pub fn get_pixel(&mut self, x: usize, y: usize) -> T {
+        self.data[y * self.width + x]
     }
 
-    pub fn get_pixel_f32(&mut self, x: usize, y: usize) -> f32 {
-        self.data[y * self.width + x] as f32 / u32::MAX as f32
-    }
-
-    pub fn clear(&mut self, value: u32) {
+    pub fn clear(&mut self, value: T) {
         for i in 0..self.data.len() {
             self.data[i] = value;
         }
+    }
+}
+
+impl Framebuffer<Vec3> {
+    pub fn as_buffer(&self) -> Vec<u32> {
+        self.data
+            .iter()
+            .map(|i| {
+                let mut array = [0.0; 4];
+                i.write_to_slice(&mut array[1..]);
+                let bytes = array.map(|float| (float * u8::MAX as f32) as u8);
+                u32::from_be_bytes(bytes)
+            })
+            .collect()
     }
 }

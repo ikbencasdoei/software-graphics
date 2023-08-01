@@ -11,18 +11,13 @@ use model::{Material, Model, Vertex};
 mod texture;
 use texture::Texture;
 
-fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
-    let (r, g, b) = (r as u32, g as u32, b as u32);
-    (r << 16) | (g << 8) | b
-}
-
 fn edge_function(a: Vec2, c: Vec2, b: Vec2) -> f32 {
     (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x)
 }
 
 fn draw_triangle(
-    framebuffer: &mut Framebuffer,
-    depth_buffer: &mut Framebuffer,
+    framebuffer: &mut Framebuffer<Vec3>,
+    depth_buffer: &mut Framebuffer<f32>,
     v0: Vertex,
     v1: Vertex,
     v2: Vertex,
@@ -65,10 +60,10 @@ fn draw_triangle(
                 let z = v0_clip_space.0.z * bary_coords.x
                     + v1_clip_space.0.z * bary_coords.y
                     + v2_clip_space.0.z * bary_coords.z;
-                let depth = depth_buffer.get_pixel_f32(x, y);
+                let depth = depth_buffer.get_pixel(x, y);
 
                 if z < depth {
-                    depth_buffer.set_pixel_f32(x, y, z);
+                    depth_buffer.set_pixel(x, y, z);
 
                     let n0 = inv_trans_model_matrix * Vec4::from((v0.normal, 1.0));
                     let n1 = inv_trans_model_matrix * Vec4::from((v1.normal, 1.0));
@@ -114,8 +109,8 @@ fn clip_to_screen_space(clip_space: Vec2, screen_size: Vec2) -> Vec2 {
 }
 
 fn draw_model(
-    framebuffer: &mut Framebuffer,
-    depth_buffer: &mut Framebuffer,
+    framebuffer: &mut Framebuffer<Vec3>,
+    depth_buffer: &mut Framebuffer<f32>,
     model: &Model,
     mvp: Mat4,
     inv_trans_model_matrix: Mat4,
@@ -160,8 +155,8 @@ fn main() {
             depth_buffer = Framebuffer::new(framebuffer.width(), framebuffer.height());
         }
 
-        framebuffer.clear(from_u8_rgb(20, 20, 20));
-        depth_buffer.clear(u32::MAX);
+        framebuffer.clear(Vec3::splat(0.1));
+        depth_buffer.clear(1.0);
 
         let aspect_ratio = framebuffer.width() as f32 / framebuffer.height() as f32;
         let model_matrix =
