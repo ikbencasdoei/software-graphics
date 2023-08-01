@@ -151,7 +151,7 @@ fn draw_model(
 }
 
 fn main() {
-    let mut window = Window::new("3D graphics from scratch! (PART 3)", 512, 512);
+    let mut window = Window::new(env!("CARGO_PKG_NAME"), 512, 512);
     let mut depth_buffer =
         Framebuffer::new(window.framebuffer().width(), window.framebuffer().height());
 
