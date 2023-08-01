@@ -1,4 +1,4 @@
-use crate::Texture;
+use crate::{draw_triangle, window::Framebuffer, Texture};
 use glam::*;
 use std::path::Path;
 
@@ -53,6 +53,35 @@ impl Model {
         }
 
         Self { meshes, materials }
+    }
+
+    pub fn draw(
+        &self,
+        framebuffer: &mut Framebuffer<Vec3>,
+        depth_buffer: &mut Framebuffer<f32>,
+        mvp: Mat4,
+        inv_trans_model_matrix: Mat4,
+    ) {
+        for mesh in &self.meshes {
+            for i in 0..(mesh.indices.len() / 3) {
+                let v0 = mesh.vertices[mesh.indices[i * 3] as usize];
+                let v1 = mesh.vertices[mesh.indices[i * 3 + 1] as usize];
+                let v2 = mesh.vertices[mesh.indices[i * 3 + 2] as usize];
+
+                let material = &self.materials[mesh.material_idx];
+
+                draw_triangle(
+                    framebuffer,
+                    depth_buffer,
+                    v0,
+                    v1,
+                    v2,
+                    mvp,
+                    inv_trans_model_matrix,
+                    material,
+                );
+            }
+        }
     }
 }
 

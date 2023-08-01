@@ -108,35 +108,6 @@ fn clip_to_screen_space(clip_space: Vec2, screen_size: Vec2) -> Vec2 {
     (clip_space * -0.5 + 0.5) * screen_size
 }
 
-fn draw_model(
-    framebuffer: &mut Framebuffer<Vec3>,
-    depth_buffer: &mut Framebuffer<f32>,
-    model: &Model,
-    mvp: Mat4,
-    inv_trans_model_matrix: Mat4,
-) {
-    for mesh in &model.meshes {
-        for i in 0..(mesh.indices.len() / 3) {
-            let v0 = mesh.vertices[mesh.indices[i * 3] as usize];
-            let v1 = mesh.vertices[mesh.indices[i * 3 + 1] as usize];
-            let v2 = mesh.vertices[mesh.indices[i * 3 + 2] as usize];
-
-            let material = &model.materials[mesh.material_idx];
-
-            draw_triangle(
-                framebuffer,
-                depth_buffer,
-                v0,
-                v1,
-                v2,
-                mvp,
-                inv_trans_model_matrix,
-                material,
-            );
-        }
-    }
-}
-
 fn main() {
     let mut window = Window::new(env!("CARGO_PKG_NAME"), 512, 512);
     let mut depth_buffer =
@@ -169,10 +140,9 @@ fn main() {
         let mvp_matrix = proj_matrix * view_matrix * model_matrix;
         let inv_trans_model_matrix = model_matrix.inverse().transpose();
 
-        draw_model(
+        model.draw(
             framebuffer,
             &mut depth_buffer,
-            &model,
             mvp_matrix,
             inv_trans_model_matrix,
         );
