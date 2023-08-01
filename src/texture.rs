@@ -44,11 +44,6 @@ impl Texture {
         let chunks = self.data.as_slice().as_chunks::<4>().0;
         let pixel = &chunks[y * (self.width as usize) + x];
 
-        Vec4::new(
-            pixel[0] as f32 / 255.99,
-            pixel[1] as f32 / 255.99,
-            pixel[2] as f32 / 255.99,
-            pixel[3] as f32 / 255.99,
-        )
+        Vec4::from(pixel.map(|i| i as f32 / u8::MAX as f32))
     }
 }
