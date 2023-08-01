@@ -1,12 +1,12 @@
 pub struct Window {
     window: minifb::Window,
-    framebuffer: Framebuffer
+    framebuffer: Framebuffer,
 }
 
 pub struct Framebuffer {
     data: Vec<u32>,
     width: usize,
-    height: usize
+    height: usize,
 }
 
 impl Window {
@@ -16,18 +16,14 @@ impl Window {
             ..Default::default()
         };
 
-        let window = minifb::Window::new(
-            name,
-            width,
-            height,
-            options
-        ).expect("Failed to create window.");
+        let window =
+            minifb::Window::new(name, width, height, options).expect("Failed to create window.");
 
         let framebuffer = Framebuffer::new(width, height);
 
         Window {
             window,
-            framebuffer
+            framebuffer,
         }
     }
 
@@ -36,11 +32,13 @@ impl Window {
     }
 
     pub fn display(&mut self) {
-        self.window.update_with_buffer(
-            &self.framebuffer.data,
-            self.framebuffer.width(),
-            self.framebuffer.height()
-        ).expect("Failed to update window buffer.");
+        self.window
+            .update_with_buffer(
+                &self.framebuffer.data,
+                self.framebuffer.width(),
+                self.framebuffer.height(),
+            )
+            .expect("Failed to update window buffer.");
 
         let (width, height) = self.window.get_size();
         if width != self.framebuffer.width() || height != self.framebuffer.height() {
@@ -58,7 +56,7 @@ impl Framebuffer {
         Framebuffer {
             data: vec![0; width * height],
             width,
-            height
+            height,
         }
     }
 
