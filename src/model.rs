@@ -42,14 +42,8 @@ impl Model {
             materials.push(Material::default());
         }
 
-        if document.nodes().len() > 0 {
-            process_node(
-                document.nodes().next().as_ref().unwrap(),
-                &buffers,
-                &mut meshes,
-                &mut materials,
-                file_path,
-            );
+        for node in document.nodes() {
+            process_node(&node, &buffers, &mut meshes, &mut materials, file_path);
         }
 
         Self { meshes, materials }
