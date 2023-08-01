@@ -41,14 +41,14 @@ impl Texture {
         let x = ((x * self.width as f32) as usize) % (self.width - 1) as usize;
         let y = ((y * self.height as f32) as usize) % (self.height - 1) as usize;
 
-        let data: &Vec<(u8, u8, u8, u8)> = unsafe { std::mem::transmute(&self.data) };
-        let pixel = &data[y * (self.width as usize) + x];
+        let chunks = self.data.as_slice().as_chunks::<4>().0;
+        let pixel = &chunks[y * (self.width as usize) + x];
 
         Vec4::new(
-            pixel.0 as f32 / 255.99,
-            pixel.1 as f32 / 255.99,
-            pixel.2 as f32 / 255.99,
-            pixel.3 as f32 / 255.99,
+            pixel[0] as f32 / 255.99,
+            pixel[1] as f32 / 255.99,
+            pixel[2] as f32 / 255.99,
+            pixel[3] as f32 / 255.99,
         )
     }
 }

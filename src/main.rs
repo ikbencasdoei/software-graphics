@@ -1,3 +1,5 @@
+#![feature(slice_as_chunks)]
+
 use std::time::SystemTime;
 
 use glam::*;
