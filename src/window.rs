@@ -1,3 +1,5 @@
+use glam::Vec3;
+
 pub struct Window {
     window: minifb::Window,
     framebuffer: Framebuffer,
@@ -68,8 +70,11 @@ impl Framebuffer {
         self.height
     }
 
-    pub fn set_pixel(&mut self, x: usize, y: usize, value: u32) {
-        self.data[x + y * self.width] = value;
+    pub fn set_pixel(&mut self, x: usize, y: usize, color: Vec3) {
+        let mut array = [0.0; 4];
+        color.write_to_slice(&mut array[1..]);
+        let bytes = array.map(|float| (float * u8::MAX as f32) as u8);
+        self.data[x + y * self.width] = u32::from_be_bytes(bytes)
     }
 
     pub fn set_pixel_f32(&mut self, x: usize, y: usize, value: f32) {

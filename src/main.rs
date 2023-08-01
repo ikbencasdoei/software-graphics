@@ -16,14 +16,6 @@ fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
     (r << 16) | (g << 8) | b
 }
 
-fn from_vec3_rgb(rgb: Vec3) -> u32 {
-    from_u8_rgb(
-        (rgb.x * 255.99) as u8,
-        (rgb.y * 255.99) as u8,
-        (rgb.z * 255.99) as u8,
-    )
-}
-
 fn edge_function(a: Vec2, c: Vec2, b: Vec2) -> f32 {
     (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x)
 }
@@ -103,7 +95,7 @@ fn draw_triangle(
 
                     let final_color = base_color * light_intensity;
 
-                    framebuffer.set_pixel(x, y, from_vec3_rgb(final_color.xyz()));
+                    framebuffer.set_pixel(x, y, final_color.xyz());
                 }
             }
         }
