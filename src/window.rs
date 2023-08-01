@@ -3,12 +3,6 @@ pub struct Window {
     framebuffer: Framebuffer,
 }
 
-pub struct Framebuffer {
-    data: Vec<u32>,
-    width: usize,
-    height: usize,
-}
-
 impl Window {
     pub fn new(name: &str, width: usize, height: usize) -> Self {
         let options = minifb::WindowOptions {
@@ -49,6 +43,12 @@ impl Window {
     pub fn framebuffer(&mut self) -> &mut Framebuffer {
         &mut self.framebuffer
     }
+}
+
+pub struct Framebuffer {
+    data: Vec<u32>,
+    width: usize,
+    height: usize,
 }
 
 impl Framebuffer {
