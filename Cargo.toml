@@ -7,7 +7,7 @@ edition = "2021"
 minifb = "0.24.0"
 glam = "0.23.0"
 gltf = "1.0.0"
-stb_image = "0.2.4"
+image = { version = "0.24.6", default-features = false, features = ["jpeg"] }
 
 [profile.dev]
 opt-level = 1
