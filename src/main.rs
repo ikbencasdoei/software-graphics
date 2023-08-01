@@ -11,20 +11,7 @@ use model::Model;
 mod texture;
 use texture::Texture;
 
-fn edge_function(a: Vec2, c: Vec2, b: Vec2) -> f32 {
-    (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x)
-}
-
-fn project(p: Vec3, mvp: Mat4) -> (Vec3, f32) {
-    let proj_pos = mvp * Vec4::from((p, 1.0));
-    let rec = 1.0 / proj_pos.w;
-    let rec_pos = proj_pos * rec;
-    (Vec3::new(rec_pos.x, rec_pos.y, rec_pos.z), rec)
-}
-
-fn clip_to_screen_space(clip_space: Vec2, screen_size: Vec2) -> Vec2 {
-    (clip_space * -0.5 + 0.5) * screen_size
-}
+mod triangle;
 
 fn main() {
     let mut window = Window::new(env!("CARGO_PKG_NAME"), 512, 512);
