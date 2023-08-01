@@ -27,6 +27,15 @@ pub struct Mesh {
 }
 
 impl Mesh {
+    pub fn to_triangles(&self) -> Vec<Triangle> {
+        self.indices
+            .array_chunks::<3>()
+            .map(|indices| Triangle {
+                vertex: indices.map(|indice| self.vertices[indice as usize]),
+            })
+            .collect()
+    }
+
     pub fn draw(
         &self,
         material: &Material,
@@ -35,15 +44,7 @@ impl Mesh {
         mvp: Mat4,
         inv_trans_model_matrix: Mat4,
     ) {
-        for i in 0..(self.indices.len() / 3) {
-            let v0 = self.vertices[self.indices[i * 3] as usize];
-            let v1 = self.vertices[self.indices[i * 3 + 1] as usize];
-            let v2 = self.vertices[self.indices[i * 3 + 2] as usize];
-
-            let triangle = Triangle {
-                vertex: [v0, v1, v2],
-            };
-
+        for triangle in self.to_triangles() {
             triangle.draw(
                 framebuffer,
                 depth_buffer,

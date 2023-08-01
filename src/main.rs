@@ -1,4 +1,5 @@
 #![feature(slice_as_chunks)]
+#![feature(array_chunks)]
 
 use std::time::SystemTime;
 
