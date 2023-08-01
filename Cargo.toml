@@ -8,3 +8,9 @@ minifb = "0.24.0"
 glam = "0.23.0"
 gltf = "1.0.0"
 stb_image = "0.2.4"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
