@@ -26,6 +26,35 @@ pub struct Mesh {
     pub material_idx: usize,
 }
 
+impl Mesh {
+    pub fn draw(
+        &self,
+        material: &Material,
+        framebuffer: &mut Framebuffer<Vec3>,
+        depth_buffer: &mut Framebuffer<f32>,
+        mvp: Mat4,
+        inv_trans_model_matrix: Mat4,
+    ) {
+        for i in 0..(self.indices.len() / 3) {
+            let v0 = self.vertices[self.indices[i * 3] as usize];
+            let v1 = self.vertices[self.indices[i * 3 + 1] as usize];
+            let v2 = self.vertices[self.indices[i * 3 + 2] as usize];
+
+            let triangle = Triangle {
+                vertex: [v0, v1, v2],
+            };
+
+            triangle.draw(
+                framebuffer,
+                depth_buffer,
+                mvp,
+                inv_trans_model_matrix,
+                material,
+            );
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Model {
     pub meshes: Vec<Mesh>,
@@ -57,25 +86,14 @@ impl Model {
         inv_trans_model_matrix: Mat4,
     ) {
         for mesh in &self.meshes {
-            for i in 0..(mesh.indices.len() / 3) {
-                let v0 = mesh.vertices[mesh.indices[i * 3] as usize];
-                let v1 = mesh.vertices[mesh.indices[i * 3 + 1] as usize];
-                let v2 = mesh.vertices[mesh.indices[i * 3 + 2] as usize];
-
-                let triangle = Triangle {
-                    vertex: [v0, v1, v2],
-                };
-
-                let material = &self.materials[mesh.material_idx];
-
-                triangle.draw(
-                    framebuffer,
-                    depth_buffer,
-                    mvp,
-                    inv_trans_model_matrix,
-                    material,
-                );
-            }
+            let material = &self.materials[mesh.material_idx];
+            mesh.draw(
+                material,
+                framebuffer,
+                depth_buffer,
+                mvp,
+                inv_trans_model_matrix,
+            )
         }
     }
 }
